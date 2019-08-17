@@ -15,53 +15,224 @@
 <h4>This is head section of this page</h4>
 <div id="root"></div>
 <script type="text/babel">
-    class App extends React.Component{
 
-        handleClick = () =>{
-            const url = 'https://jsonplaceholder.typicode.com/posts'
+    class ContactForm extends React.Component {
+
+        state = {
+            name: '',
+            email: '',
+            job: ''
+        }
+
+        handleFormSubmit(event) {
+            event.preventDefault();
+            this.setState({name: '', email: '', job: ''});
+            let formData = new FormData();
+
+            formData.append('name', this.state.name)
+            formData.append('email', this.state.email)
+            formData.append('job', this.state.job)
+
+            axios({
+                method: 'POST',
+                url: 'process.php',
+                data: formData,
+            }).then(function (response) {
+                console.log(response)
+            }).catch(function (response) {
+                console.log(response)
+            })
+
+
+        }
+
+        render() {
+
+            return (
+                <div>
+                    <form>
+                        <label>Name</label>
+                        <input type="text" name="name" value={this.state.name}
+                               onChange={e => this.setState({name: e.target.value})} autoFocus/>
+
+                        <label>Email</label>
+                        <input type="email" name="email" value={this.state.email}
+                               onChange={e => this.setState({email: e.target.value})}/>
+
+                        <label>Job</label>
+                        <input type="text" name="job" value={this.state.job}
+                               onChange={e => this.setState({job: e.target.value})}/>
+
+                        <input type="submit" onClick={e => this.handleFormSubmit(e)} value="Create Contact"/>
+                    </form>
+                </div>
+            );
+        }
+    }
+
+    class EditContactForm extends React.Component {
+
+        state = {
+            name: 'defualt name',
+            email: 'default@gmail.com',
+            job: 'software engineer'
+        }
+
+
+        constructor(props) {
+            super(props);
+            console.log(props)
+        }
+
+        componentDidMount() {
+            const url = 'process.php?status=edit&id=' + this.props.editId;
             axios.get(url).then(response => response.data)
                 .then((data) => {
-                    this.setState({ contacts: data })
-                    console.log(this.state.contacts)
+
+                    this.setState(
+                        {
+                            name: data.name,
+                            email: data.email,
+                            job: data.job
+                        })
                 })
         }
 
-        handleClose = () =>{
-            this.setState({ contacts: [] })
-            console.log(this.state.contacts)
+        handleFormSubmit(event) {
+            event.preventDefault();
+            this.setState({name: '', email: '', job: ''});
+            let formData = new FormData();
+
+            formData.append('name', this.state.name)
+            formData.append('email', this.state.email)
+            formData.append('job', this.state.job)
+
+            axios({
+                method: 'POST',
+                url: 'process.php',
+                data: formData,
+            }).then(function (response) {
+                console.log(response)
+            }).catch(function (response) {
+                console.log(response)
+            })
+
+
+        }
+
+        render() {
+
+
+            return (
+                <div>
+                    <form>
+                        <label>Name</label>
+                        <input type="text" name="name" value={this.state.name}
+                               onChange={e => this.setState({name: e.target.value})} autoFocus/>
+
+                        <label>Email</label>
+                        <input type="email" name="email" value={this.state.email}
+                               onChange={e => this.setState({email: e.target.value})}/>
+
+                        <label>Job</label>
+                        <input type="text" name="job" value={this.state.job}
+                               onChange={e => this.setState({job: e.target.value})}/>
+
+                        <input type="submit" onClick={e => this.handleFormSubmit(e)} value="Create Contact"/>
+                    </form>
+                </div>
+            );
+        }
+    }
+
+    class App extends React.Component {
+
+        componentDidMount() {
+
+            const url = 'process.php?status=all'
+            axios.get(url).then(response => response.data)
+                .then((data) => {
+
+                    this.setState({contacts: data})
+                })
         }
 
 
+        handleDelete(index) {
+            const url = 'process.php?status=delete&id=' + index;
+            axios.get(url).then(response => response.data)
 
+        }
+
+        handleEdit(index) {
+            this.setState({
+                id: index
+            })
+        }
+
+        componentDidUpdate() {
+            const url = 'process.php?status=all'
+            axios.get(url).then(response => response.data)
+                .then((data) => {
+                    this.setState({contacts: data})
+                })
+        }
 
         state = {
-            contacts  : []
+            contacts: [],
+            id: null,
         }
+
         render() {
+            let form;
+            if (this.state.id == null) {
+                form = <ContactForm/>
+            } else {
+                form = <EditContactForm editId={this.state.id}/>
+            }
+
             return (
                 <React.Fragment>
-                    <h1>Contact Management</h1>
-                    <button type="button" onClick={this.handleClick}>Load Data</button>
-                    <button type="button" onClick={this.handleClose}>Close Data</button>
-                    <table border='1' width='100%' >
+
+                    {form}
+                    <br/><br/>
+                    <table border='1' width='50%'>
                         <tr>
                             <th>Serial</th>
                             <th>Name</th>
+                            <th>Email</th>
+                            <th>Job</th>
+                            <th>Action</th>
                         </tr>
 
                         {this.state.contacts.map((contact, index) => (
-                            <tr><td> { index +1 }</td>
-                                <td>{ contact.title }</td>
+                            <tr>
+                                <td> {index + 1}</td>
+                                <td>{contact.name}</td>
+                                <td>{contact.email}</td>
+                                <td>{contact.job}</td>
+                                <td>
+                                    <td>
+                                        <button type="button" onClick={() => this.handleEdit(contact.id)}>Edit
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button type="button" onClick={() => this.handleDelete(contact.id)}>Delete
+                                        </button>
+                                    </td>
+                                </td>
 
                             </tr>
                         ))}
                     </table>
+
+
                 </React.Fragment>
             );
         }
     }
 
-    ReactDOM.render(<App/>,document.getElementById('root'))
+    ReactDOM.render(<App/>, document.getElementById('root'))
 </script>
 
 </body>

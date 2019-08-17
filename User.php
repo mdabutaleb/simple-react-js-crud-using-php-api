@@ -1,23 +1,21 @@
 <?php
-namespace App\Pondit\Mobile;
 
 use PDO;
 
-class Mobile
+class User
 {
-    public $id = '';
-    public $title = '';
-    public $conn = '';
-    public $dbuser = 'root';
-    public $dbpass = '';
-    public $order = '';
-    public $page_number = '';
-    public $item_per_page;
+
+    private $title = '';
+    private $email;
+    private $job;
+    private $id;
+    private $conn = '';
+    private $dbuser = 'root';
+    private $dbpass = '111111';
 
     public function __construct()
     {
-        session_start();
-        $this->conn = new PDO("mysql:host=localhost;dbname=pondit", $this->dbuser, $this->dbpass);
+        $this->conn = new PDO("mysql:host=localhost;dbname=reactjs_php", $this->dbuser, $this->dbpass);
     }
 
     public function num_of_row($table)
@@ -34,18 +32,17 @@ class Mobile
 
     public function setData($data = '')
     {
-        if (array_key_exists('mobile_model', $data) && !empty($data['mobile_model'])) {
-            $this->title = $data['mobile_model'];
+        if (array_key_exists('name', $data) && !empty($data['name'])) {
+            $this->name = $data['name'];
         }
-        if (array_key_exists('order', $data) && !empty($data['order'])) {
-            $this->order = $data['order'];
+
+        if (array_key_exists('email', $data) && !empty($data['email'])) {
+            $this->email = $data['email'];
         }
-        if (array_key_exists('item_p_pg', $data) && !empty($data['item_p_pg'])) {
-            $this->item_per_page = $data['item_p_pg'];
+        if (array_key_exists('job', $data) && !empty($data['job'])) {
+            $this->job = $data['job'];
         }
-        if (array_key_exists('page', $data) && !empty($data['page'])) {
-            $this->page_number = $data['page'];
-        }
+
         if (array_key_exists('id', $data) && !empty($data['id'])) {
             $this->id = $data['id'];
         }
@@ -57,33 +54,19 @@ class Mobile
     public function store()
     {
         try {
-            $qr = "SELECT * FROM `mobile_models` WHERE title=" . "'" . $this->title . "'";
-            $stmt1 = $this->conn->query($qr);
-            $result = $stmt1->fetch();
-            if (empty($result)) {
-                $query = "INSERT INTO mobile_models(id, title) VALUES(:id, :title)";
-                $stmt = $this->conn->prepare($query);
-                $stmt->execute(array(
-                    ':id' => null,
-                    ':title' => $this->title,
-                ));
-                if ($stmt) {
-                    $_SESSION['Message'] = "<h3>Successfully Submited</h3>";
-
-                } else {
-                    $_SESSION['Message'] = "<h3>Opps Something going wrong</h3>";
-                }
+            $query = "INSERT INTO users(name, email, job) VALUES(:name, :email, :job)";
+            $stmt = $this->conn->prepare($query);
+            $status = $stmt->execute(array(
+                ':name' => $this->name,
+                ':email' => $this->email,
+                ':job' => $this->job,
+            ));
+            if ($status) {
+                return 'Stored successfully !';
             } else {
-
-                $_SESSION['Message'] = "<h3>Sorry ! Same mobile model already exist</h3>";
-                header('location:create.php');
+                return 'Something going wrong';
             }
 
-            if (empty($_POST['moreadd'])) {
-                header('location:index.php');
-            }else{
-                header('location:create.php');
-            }
 
         } catch (PDOException $e) {
             echo 'Error: ' . $e->getMessage();
@@ -93,33 +76,27 @@ class Mobile
     public function index()
     {
         try {
-            if ($this->order == 'a-z') {
-                $query = "SELECT * FROM mobile_models where is_delete=0 ORDER BY title LIMIT $this->item_per_page OFFSET " . $this->page_number * $this->item_per_page;
-            } else {
-                $query = "SELECT * FROM mobile_models where is_delete=0 ORDER BY id DESC LIMIT $this->item_per_page OFFSET " . $this->page_number * $this->item_per_page;
-            }
-//            echo $query;
-//            die();
+            $query = "SELECT * FROM users";
             $stmt = $this->conn->query($query);
             $data = $stmt->fetchAll();
             return $data;
         } catch (PDOException $e) {
             echo 'Error: ' . $e->getMessage();
         }
-
     }
 
-    public function show()
+    public function show($id)
     {
 
         try {
-            $query = "SELECT * FROM mobile_models where id=" . $this->id;
+            $query = "SELECT * FROM users where id=" . $id;
             $stmt = $this->conn->query($query);
             $result = $stmt->fetch();
+            return $result;
         } catch (PDOException $e) {
             echo 'Error: ' . $e->getMessage();
         }
-        return $result;
+
 
     }
 
@@ -152,16 +129,15 @@ class Mobile
 
     }
 
-    public function delete()
+    public function delete($id)
     {
 
         try {
-            $query = "delete from mobile_models where id=" . $this->id;
+            $query = "delete from users where id=" . $id;
             $stmt = $this->conn->query($query);
-            $stmt->execute();
+            $status = $stmt->execute();
             if ($stmt) {
-                $_SESSION['Message'] = "<h3>Successfully Deleted</h3>";
-                header("location:trashList.php");
+                return 'Deleted successfully !';
             }
         } catch (PDOException $e) {
             echo 'Error: ' . $e->getMessage();
@@ -224,3 +200,5 @@ class Mobile
     }
 
 }
+
+
