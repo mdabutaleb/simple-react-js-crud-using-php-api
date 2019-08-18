@@ -100,27 +100,21 @@ class User
 
     }
 
+
     public function update()
     {
 
         try {
-            $qr = "SELECT * FROM `mobile_models` WHERE title=" . "'" . $this->title . "'";
-            $stmt1 = $this->conn->query($qr);
-            $result = $stmt1->fetch();
-            if (empty($result)) {
-                $query = "UPDATE mobile_models SET title=:title where id=:id";
-                $stmt = $this->conn->prepare($query);
-                $stmt->execute(array(
-                    ':id' => $this->id,
-                    ':title' => $this->title,
-                ));
-                if ($stmt) {
-                    $_SESSION['Message'] = "<h3>Successfully Updated</h3>";
-                    header('location:index.php');
-                }
-            } else {
-                $_SESSION['Message'] = "<h3>Mobile model already exist</h3>";
-                header("location:edit.php?id=$this->id");
+            $query = "UPDATE users SET name=:name, email=:email, job=:job where id=:id";
+            $stmt = $this->conn->prepare($query);
+            $status = $stmt->execute(array(
+                ':id' => $this->id,
+                ':name' => $this->name,
+                ':email' => $this->email,
+                ':job' => $this->job,
+            ));
+            if ($status) {
+                return "Successfully Updated";
             }
 
         } catch (PDOException $e) {

@@ -24,6 +24,12 @@
             job: ''
         }
 
+        constructor(props) {
+            super(props);
+            console.log(props.editItem)
+
+        }
+
         handleFormSubmit(event) {
             event.preventDefault();
             this.setState({name: '', email: '', job: ''});
@@ -73,15 +79,15 @@
     class EditContactForm extends React.Component {
 
         state = {
-            name: 'defualt name',
-            email: 'default@gmail.com',
-            job: 'software engineer'
+            name: '',
+            email: '',
+            job: '',
         }
 
 
         constructor(props) {
             super(props);
-            console.log(props)
+
         }
 
         componentDidMount() {
@@ -98,14 +104,18 @@
                 })
         }
 
-        handleFormSubmit(event) {
+        handleUpdate(event) {
+
+
             event.preventDefault();
-            this.setState({name: '', email: '', job: ''});
+            // this.setState({name: '', email: '', job: ''});
             let formData = new FormData();
 
             formData.append('name', this.state.name)
             formData.append('email', this.state.email)
             formData.append('job', this.state.job)
+            formData.append('id', this.props.editId)
+            formData.append('status', 'update')
 
             axios({
                 method: 'POST',
@@ -114,14 +124,13 @@
             }).then(function (response) {
                 console.log(response)
             }).catch(function (response) {
-                console.log(response)
+
             })
 
 
         }
 
         render() {
-
 
             return (
                 <div>
@@ -138,7 +147,8 @@
                         <input type="text" name="job" value={this.state.job}
                                onChange={e => this.setState({job: e.target.value})}/>
 
-                        <input type="submit" onClick={e => this.handleFormSubmit(e)} value="Create Contact"/>
+
+                        <input type="submit" onClick={e => this.handleUpdate(e)} value="Update"/>
                     </form>
                 </div>
             );
@@ -146,13 +156,17 @@
     }
 
     class App extends React.Component {
+        state = {
+            contacts: [],
+            id: null,
+            item: {},
+        }
 
         componentDidMount() {
 
             const url = 'process.php?status=all'
             axios.get(url).then(response => response.data)
                 .then((data) => {
-
                     this.setState({contacts: data})
                 })
         }
@@ -165,9 +179,12 @@
         }
 
         handleEdit(index) {
+
             this.setState({
                 id: index
             })
+
+
         }
 
         componentDidUpdate() {
@@ -176,17 +193,15 @@
                 .then((data) => {
                     this.setState({contacts: data})
                 })
+
         }
 
-        state = {
-            contacts: [],
-            id: null,
-        }
 
         render() {
             let form;
+
             if (this.state.id == null) {
-                form = <ContactForm/>
+                form = <ContactForm />
             } else {
                 form = <EditContactForm editId={this.state.id}/>
             }
